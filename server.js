@@ -8,99 +8,69 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// পোর্ট ও ডাটাবেজ পাথ কনফিগারেশন
 const PORT = process.env.PORT || 3000;
 const DB_DIR = path.join(__dirname, 'database');
 const USERS_FILE = path.join(DB_DIR, 'users.json');
+const POSTS_FILE = path.join(DB_DIR, 'posts.json');
 
-// ডাটাবেজ ফোল্ডার বা ফাইল না থাকলে অটো তৈরি করা
-if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
-}
-if (!fs.existsSync(USERS_FILE)) {
-    fs.writeFileSync(USERS_FILE, JSON.stringify([]));
-}
+// অটো ডাটাবেজ ফাইল ক্রিয়েটর
+if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, JSON.stringify([]));
+if (!fs.existsSync(POSTS_FILE)) fs.writeFileSync(POSTS_FILE, JSON.stringify([]));
 
-// মিডলওয়্যার
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname))); // স্ট্যাটিক ফাইল সার্ভ করার জন্য
+app.use(express.static(path.join(__dirname)));
 
-// ১. রেজিস্ট্রেশন রাউট (FullName, Username, Password সহ)
+// রেজিস্ট্রেশন রাউট (FullName, Username, Password)
 app.post('/api/register', (req, res) => {
     const { fullName, username, password } = req.body;
-    
     if (!fullName || !username || !password) {
         return res.status(400).json({ message: "All fields are required!" });
     }
 
-    let users = [];
-    try {
-        const data = fs.readFileSync(USERS_FILE, 'utf8');
-        users = JSON.parse(data);
-    } catch (err) {
-        users = [];
-    }
-
-    // ইউজার আগে থেকেই আছে কি না চেক করা
-    const existingUser = users.find(u => u.username === username);
-    if (existingUser) {
+    let users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+    if (users.find(u => u.username === username)) {
         return res.status(400).json({ message: "Username already exists!" });
     }
 
-    // নতুন ইউজার সেভ করা
     users.push({ fullName, username, password });
     fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-
     res.status(200).json({ message: "Registration successful!" });
 });
 
-// ২. পাসওয়ার্ড পরিবর্তনের রাউট
-app.post('/api/change-password', (req, res) => {
-    const { oldPassword, newPassword } = req.body;
-
-    if (!oldPassword || !newPassword) {
-        return res.status(400).json({ message: "Please provide both old and new passwords!" });
-    }
-
-    let users = [];
-    try {
-        const data = fs.readFileSync(USERS_FILE, 'utf8');
-        users = JSON.parse(data);
-    } catch (err) {
-        return res.status(500).json({ message: "Database error!" });
-    }
-
-    // নোট: সিম্প্লিফিকেশনের জন্য এখানে ইউজার সেশন চেক করা হয়েছে, 
-    // আপনি চাইলে নির্দিষ্ট ইউজারের পাসওয়ার্ড আপডেট লজিক এখানে কাস্টমাইজ করতে পারেন।
-    if (users.length > 0) {
-        // ডেমো বা সিঙ্গেল সেশন হ্যান্ডলিংয়ের জন্য প্রথম ইউজারের পাসওয়ার্ড চেক
-        if (users[0].password === oldPassword) {
-            users[0].password = newPassword;
-            fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-            return res.status(200).json({ message: "Password updated successfully!" });
-        } else {
-            return res.status(400).json({ message: "Current password is incorrect!" });
-        }
-    } else {
-        return res.status(404).json({ message: "No user found!" });
-    }
+// ইউজার লিস্ট (फाइंड ফ্রেন্ডস ফিচারের জন্য)
+app.get('/api/users', (req, res) => {
+    let users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+    const safeUsers = users.map(u => ({ fullName: u.fullName, username: u.username }));
+    res.status(200).json(safeUsers);
 });
 
-// রিয়েল-টাইম Socket.io চ্যাট হ্যান্ডলিং
+// পোস্ট ক্রিয়েশন রাউট
+app.post('/api/posts', (req, res) => {
+    const { username, content } = req.body;
+    if (!content) return res.status(400).json({ message: "Post content cannot be empty!" });
+
+    let posts = JSON.parse(fs.readFileSync(POSTS_FILE, 'utf8'));
+    const newPost = { id: Date.now(), username, content, likes: 0, time: new Date().toLocaleDateString() };
+    posts.unshift(newPost);
+    fs.writeFileSync(POSTS_FILE, JSON.stringify(posts, null, 2));
+    res.status(200).json(newPost);
+});
+
+// ফিড পোস্ট ফেচ করা
+app.get('/api/posts', (req, res) => {
+    let posts = JSON.parse(fs.readFileSync(POSTS_FILE, 'utf8'));
+    res.status(200).json(posts);
+});
+
+// রিয়েল-টাইম চ্যাট (Socket.io)
 io.on('connection', (socket) => {
-    console.log('A user connected');
-
     socket.on('chatMessage', (data) => {
-        // চ্যাট মেসেজ সকল ইউজারের কাছে ব্রডকাস্ট করা
         io.emit('message', { username: data.username || 'LoveBirds User', text: data.text });
-    });
-
-    socket.on('disconnect', () => {
-        console.log('A user disconnected');
     });
 });
 
 server.listen(PORT, () => {
-    console.log(`LoveBirds Ultimate Secure Platform running on http://localhost:${PORT}`);
+    console.log(`LoveBirds Ultimate Modular Server running on port ${PORT}`);
 });
