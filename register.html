@@ -1,58 +1,159 @@
-<form id="registerForm">
-    <h2>Create Account 🪶</h2>
-    
-    <!-- নতুন ফুল নেম ফিল্ড -->
-    <div class="input-group">
-        <label>Full Name</label>
-        <input type="text" id="fullName" placeholder="Enter your full name" required>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoveBirds - Register</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0f0c1b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a153b, #0f0c1b);
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            color: #fff;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ff4757;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #ddd;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+            outline: none;
+        }
+        .input-group input:focus {
+            border-color: #ff4757;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        p {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        p a {
+            color: #ff6b81;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <form id="registerForm">
+                <h2>Create Account 🪶</h2>
+                
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="fullName" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="regUsername" placeholder="Choose a username" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="regPassword" placeholder="Enter password" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Retype Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Retype your password" required>
+                </div>
+
+                <button type="submit" class="btn">Register</button>
+                <p>Already have an account? <a href="login.html">Login here</a></p>
+            </form>
+        </div>
     </div>
 
-    <div class="input-group">
-        <label>Username</label>
-        <input type="text" id="regUsername" placeholder="Choose a username" required>
-    </div>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('fullName').value;
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
 
-    <div class="input-group">
-        <label>Password</label>
-        <input type="password" id="regPassword" placeholder="Enter password" required>
-    </div>
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
+                return;
+            }
 
-    <!-- নতুন পাসওয়ার্ড রি-টাইপ ফিল্ড -->
-    <div class="input-group">
-        <label>Retype Password</label>
-        <input type="password" id="confirmPassword" placeholder="Retype your password" required>
-    </div>
-
-    <button type="submit" class="btn">Register</button>
-    <p>Already have an account? <a href="login.html">Login here</a></p>
-</form>
-
-<script>
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fullName = document.getElementById('fullName').value;
-    const username = document.getElementById('regUsername').value;
-    const password = document.getElementById('regPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-
-    // পাসওয়ার্ড মিলছে কি না চেক করা
-    if (password !== confirmPassword) {
-        alert("Passwords do not match!");
-        return;
-    }
-
-    // ব্যাকএন্ডে পাঠানোর কোড (আপনার প্রজেক্টের রুটিন অনুযায়ী)
-    const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, username, password })
-    });
-    const data = await res.json();
-    if(res.ok) {
-        alert("Registration Successful!");
-        window.location.href = 'login.html';
-    } else {
-        alert(data.message);
-    }
-});
-</script>
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullName, username, password })
+            });
+            const data = await res.json();
+            if(res.ok) {
+                alert("Registration Successful!");
+                window.location.href = 'login.html';
+            } else {
+                alert(data.message || "Registration failed!");
+            }
+        });
+    </script>
+</body>
+</html>
