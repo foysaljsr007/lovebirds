@@ -3,361 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoveBirds - Messenger</title>
-    <link rel="icon" type="image/png" href="Favicon.png">
+    <title>LoveBirds - Live Chat</title>
+    <!-- Socket.io CDN -->
+    <script src="/socket.io/socket.io.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --pink: #ff4f91;
-            --purple: #9b5cff;
-            --bg: #090711;
-            --white: #fff;
-            --muted: rgba(255,255,255,.58);
-            --glass: rgba(255,255,255,.075);
-            --border: rgba(255,255,255,.13);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            background: #0f0c1b;
+            color: #fff;
+        }
+        .container {
+            width: 100vw;
             height: 100vh;
-            font-family: "DM Sans", sans-serif;
-            color: white;
-            background: radial-gradient(circle at 10% 20%, rgba(255,70,140,.22), transparent 30%),
-                        radial-gradient(circle at 90% 80%, rgba(135,75,255,.22), transparent 32%),
-                        linear-gradient(135deg, #07060c, #12091b 50%, #08070e);
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            background: linear-gradient(135deg, #1a153b, #0f0c1b);
+        }
+        /* নেভবার */
+        .navbar {
+            width: 100%;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
-        .chat-container {
+        .navbar h2 {
+            color: #ff4757;
+            font-size: 22px;
+        }
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .nav-links a:hover {
+            color: #ff4757;
+        }
+        /* মেইন চ্যাট লেআউট */
+        .chat-wrapper {
+            flex: 1;
+            display: flex;
+            max-width: 1200px;
             width: 100%;
-            max-width: 480px;
-            height: 92vh;
-            background: linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.035));
-            border: 1px solid var(--border);
-            backdrop-filter: blur(30px);
-            border-radius: 25px;
-            box-shadow: 0 35px 100px rgba(0,0,0,.5);
+            margin: 20px auto;
+            gap: 20px;
+            padding: 0 20px;
+            height: calc(100vh - 100px);
+        }
+        .chat-box {
+            flex: 2;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: relative;
         }
-        .chat-header {
-            padding: 14px 20px;
+        .messages-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            background: rgba(255,255,255,.04);
-            backdrop-filter: blur(20px);
-            z-index: 50;
-        }
-        .header-left { display: flex; align-items: center; gap: 12px; }
-        .user-details h3 { font-size: 14px; font-family: "Playfair Display", serif; color: var(--white); }
-        .status-container { font-size: 11px; color: #2ecc71; }
-
-        .nav-icons-group { display: flex; gap: 10px; align-items: center; }
-        .nav-icon-btn {
-            background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
-            border: 1px solid rgba(255,255,255,0.18);
-            color: white; width: 40px; height: 40px; border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; text-decoration: none; font-size: 16px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.3);
-        }
-        .nav-icon-btn:hover {
-            background: linear-gradient(135deg, #ff4f91, #9b55f5);
-            border-color: rgba(255,255,255,0.4);
-            transform: translateY(-3px) scale(1.05);
-        }
-
-        .menu-container { position: relative; display: inline-block; }
-        .dropdown-menu {
-            position: absolute; right: 0; top: 48px;
-            background: rgba(18, 12, 27, 0.95);
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.15);
-            display: none; flex-direction: column; width: 210px;
-            z-index: 999; overflow: hidden;
-            border: 1px solid var(--border);
-            backdrop-filter: blur(25px);
-        }
-        .dropdown-menu button {
-            background: none; border: none; padding: 12px 16px;
-            text-align: left; cursor: pointer; font-size: 12px; color: white; transition: 0.2s; width: 100%;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .dropdown-menu button:hover { background: rgba(255,255,255,.08); color: var(--pink); }
-
-        .chat-messages {
-            flex: 1; padding: 15px; overflow-y: auto;
-            background-color: rgba(0,0,0,0.2);
-            background-size: cover; background-position: center;
-            display: flex; flex-direction: column; gap: 10px;
+            flex-direction: column;
+            gap: 10px;
         }
         .message {
-            max-width: 75%; padding: 10px 14px; border-radius: 14px;
-            font-size: 13px; word-wrap: break-word; line-height: 1.4; position: relative; cursor: pointer;
+            background: rgba(255, 255, 255, 0.07);
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 70%;
+            word-break: break-word;
         }
-        .message.incoming {
-            background: rgba(255,255,255,.08); color: var(--white);
-            align-self: flex-start; border: 1px solid var(--border);
+        .message span {
+            font-size: 12px;
+            color: #ff6b81;
+            display: block;
+            margin-bottom: 3px;
+            font-weight: bold;
         }
-        .message.outgoing {
-            background: linear-gradient(135deg, #ff4f91, #9b55f5); color: white;
-            align-self: flex-end; box-shadow: 0 5px 15px rgba(255,70,145,0.3);
-        }
-        .message img, .message video { max-width: 100%; border-radius: 10px; margin-top: 5px; }
-        .file-link { color: inherit; text-decoration: underline; display: block; margin-top: 5px; }
-        
-        .typing-indicator { font-size: 11px; color: var(--muted); padding: 2px 18px; font-style: italic; display: none; }
-
         .chat-input-area {
-            display: flex; align-items: center; padding: 12px 16px;
-            background: rgba(255,255,255,.03); border-top: 1px solid var(--border); gap: 10px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .file-label {
-            cursor: pointer; font-size: 18px; color: #ff86b7; width: 42px; height: 42px;
-            display: flex; align-items: center; justify-content: center;
-            background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
-            border: 1px solid rgba(255,255,255,0.18); border-radius: 14px;
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+            outline: none;
         }
-        .chat-input-area input[type="text"] {
-            flex: 1; height: 44px; padding: 0 16px; border-radius: 14px;
-            border: 1px solid var(--border); background: rgba(255,255,255,.05);
-            color: white; outline: none; font-size: 13px;
+        .chat-input-area button {
+            padding: 0 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
         }
-        .chat-input-area button.send-btn {
-            width: 44px; height: 44px; border: 0; border-radius: 14px;
-            background: linear-gradient(135deg, #ff4f91, #9b55f5); color: white;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;
+        /* সাইডবার (পাসওয়ার্ড চেঞ্জ প্যানেল সহ) */
+        .sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-        #mediaInput, #bgFileInput { display: none; }
-
-        .modal {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
-            backdrop-filter: blur(10px);
+        .card-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
         }
-        .modal-content {
-            background: #12091b; border: 1px solid var(--border); padding: 22px; border-radius: 20px; width: 85%; text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6); color: white;
+        .card-panel h3 {
+            margin-bottom: 15px;
+            color: #ff4757;
+            font-size: 18px;
         }
-        .modal-content input {
-            width: 100%; padding: 12px 14px; margin: 14px 0; border: 1px solid var(--border);
-            border-radius: 12px; background: rgba(255,255,255,.05); color: white; outline: none;
+        .card-panel input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+            outline: none;
         }
-        .modal-content button {
-            background: linear-gradient(135deg, #ff4f91, #9b55f5); color: white; border: none;
-            padding: 10px 18px; border-radius: 12px; cursor: pointer; margin: 5px; font-weight: bold; font-size: 13px;
+        .card-panel button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-
-    <div class="chat-container">
-        <div class="chat-header">
-            <div class="header-left">
-                <a href="feed.html" class="nav-icon-btn" title="Back to Feed">🏠</a>
-                <div class="user-details">
-                    <h3 id="partnerName">LoveBirds Partner</h3>
-                    <div class="status-container">💚 Active Now</div>
-                </div>
-            </div>
-            
-            <div class="nav-icons-group">
-                <a href="admin.html" class="nav-icon-btn" title="Admin Panel" style="color: #ff6b6b;">🛡️</a>
-                <div class="menu-container">
-                    <button class="nav-icon-btn" onclick="toggleMenu()" title="Settings">⚙️</button>
-                    <div class="dropdown-menu" id="dropdownMenu">
-                        <button onclick="triggerBgUpload()">🎨 Change Background</button>
-                        <button onclick="openMediaGallery()">📁 Media Gallery</button>
-                        <button onclick="openNicknameModal()">✏️ Set Nickname</button>
-                        <button onclick="clearNickname()" style="color: #ff6b6b;">🔄 Reset Nickname</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="chat-messages" id="chatMessages">
-            <div class="message incoming">Hello! Welcome to LoveBirds secure live chat. ♥</div>
-        </div>
-
-        <div class="typing-indicator" id="typingIndicator">typing...</div>
-
-        <div class="chat-input-area">
-            <label for="mediaInput" class="file-label" title="Upload Media/File">📎</label>
-            <input type="file" id="mediaInput" onchange="sendMediaFile(event)">
-            
-            <input type="text" id="messageInput" placeholder="Type a message..." oninput="handleTyping()">
-            <button class="send-btn" onclick="sendMessage()">➤</button>
-        </div>
-
-        <input type="file" id="bgFileInput" accept="image/*" onchange="applyDeviceBackground(event)">
-
-        <div class="modal" id="nicknameModal">
-            <div class="modal-content">
-                <h4>Set Partner Nickname</h4>
-                <input type="text" id="nicknameInput" placeholder="Enter new nickname...">
-                <button onclick="saveNickname()">Save</button>
-                <button style="background: rgba(255,255,255,.1);" onclick="closeModals()">Cancel</button>
+    <div class="container">
+        <!-- নেভবার -->
+        <div class="navbar">
+            <h2>LoveBirds 🕊️</h2>
+            <div class="nav-links">
+                <a href="feed.html">Feed</a>
+                <a href="chat.html" style="color: #ff4757;">Chat</a>
+                <a href="index.html">Logout</a>
             </div>
         </div>
 
-        <div class="modal" id="mediaGalleryModal">
-            <div class="modal-content" style="max-height: 70vh; overflow-y: auto;">
-                <h4>Shared Media Gallery</h4>
-                <div id="mediaGalleryContent" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; justify-content: center;">
-                    <p style="color: var(--muted); font-size: 12px;">No media shared yet.</p>
+        <!-- মূল চ্যাট ও সেটিংস এলাকা -->
+        <div class="chat-wrapper">
+            <!-- চ্যাট বক্স -->
+            <div class="chat-box">
+                <div class="messages-area" id="messagesArea">
+                    <!-- লাইভ মেসেজগুলো এখানে দেখাবে -->
                 </div>
-                <button style="margin-top: 15px;" onclick="closeModals()">Close</button>
+                <div class="chat-input-area">
+                    <input type="text" id="messageInput" placeholder="Type a message...">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- সাইডবার: পাসওয়ার্ড পরিবর্তন করার নতুন ফিচার -->
+            <div class="sidebar">
+                <div class="card-panel">
+                    <h3>Change Password 🔒</h3>
+                    <input type="password" id="oldPassword" placeholder="Current Password">
+                    <input type="password" id="newPassword" placeholder="New Password">
+                    <button onclick="changePassword()">Update Password</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const chatMessages = document.getElementById('chatMessages');
-        const messageInput = document.getElementById('messageInput');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const dropdownMenu = document.getElementById('dropdownMenu');
-        let sharedMediaList = [];
 
-        window.onload = () => {
-            const savedBg = localStorage.getItem('lovebirds_bg');
-            if (savedBg) chatMessages.style.backgroundImage = `url('${savedBg}')`;
-            
-            const savedNick = localStorage.getItem('lovebirds_nickname');
-            if (savedNick) document.getElementById('partnerName').innerText = savedNick;
-        };
-
-        function toggleMenu() {
-            dropdownMenu.style.display = dropdownMenu.style.display === 'flex' ? 'none' : 'flex';
-        }
-        
-        window.onclick = function(event) {
-            if (!event.target.matches('.nav-icon-btn') && !event.target.matches('.menu-container *')) {
-                dropdownMenu.style.display = 'none';
-            }
-        }
-
-        function triggerBgUpload() { document.getElementById('bgFileInput').click(); }
-
-        function applyDeviceBackground(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    chatMessages.style.backgroundImage = `url('${e.target.result}')`;
-                    localStorage.setItem('lovebirds_bg', e.target.result);
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
+        // মেসেজ পাঠানো
         function sendMessage() {
-            const text = messageInput.value.trim();
-            if (text !== '') {
-                const messageData = { text: text, type: 'text', sender: localStorage.getItem('lovebirds_user') || 'Me' };
-                socket.emit('chat_message', messageData);
-                messageInput.value = '';
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if(text) {
+                socket.emit('chatMessage', { text });
+                input.value = '';
             }
         }
 
-        function sendMediaFile(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    let contentHtml = '';
-                    if (file.type.startsWith('image/')) {
-                        contentHtml = `<img src="${e.target.result}" alt="Image"><br><a href="${e.target.result}" download="${file.name}" class="file-link">📥 Download Image</a>`;
-                    } else if (file.type.startsWith('video/')) {
-                        contentHtml = `<video controls src="${e.target.result}"></video><br><a href="${e.target.result}" download="${file.name}" class="file-link">📥 Download Video</a>`;
-                    } else {
-                        contentHtml = `📄 <b>${file.name}</b><br><a href="${e.target.result}" download="${file.name}" class="file-link">📥 Download Document</a>`;
-                    }
-
-                    sharedMediaList.push({ url: e.target.result, type: file.type, name: file.name });
-                    socket.emit('chat_message', { text: contentHtml, type: 'media', sender: localStorage.getItem('lovebirds_user') || 'Me' });
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
-        socket.on('chat_message', (data) => {
-            const currentUser = localStorage.getItem('lovebirds_user') || 'Me';
-            const msgType = (data.sender === currentUser) ? 'outgoing' : 'incoming';
-            appendMessage(data.text, msgType, data);
+        // মেসেজ রিসিভ করা
+        socket.on('message', (data) => {
+            const area = document.getElementById('messagesArea');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message';
+            msgDiv.innerHTML = `<span>${data.username || 'User'}</span>${data.text}`;
+            area.appendChild(msgDiv);
+            area.scrollTop = area.scrollHeight;
         });
 
-        function appendMessage(content, type, rawData) {
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('message', type);
-            msgDiv.innerHTML = content;
-            
-            // Security action on click: Delete & Backup audit
-            msgDiv.onclick = (e) => {
-                e.stopPropagation();
-                if (confirm("Choose an action:\nOK -> Delete Message\nCancel -> Forward/Save")) {
-                    const choice = prompt("Delete option:\n1. Delete for me\n2. Delete for everyone (Sent to Admin Audit Backup)");
-                    if (choice === "1") {
-                        msgDiv.remove();
-                    } else if (choice === "2") {
-                        socket.emit('delete_chat_everyone', { sender: rawData ? rawData.sender : 'Unknown', content: content });
-                        msgDiv.remove();
-                        alert("Message deleted and securely archived for compliance review.");
-                    }
-                }
-            };
+        // পাসওয়ার্ড পরিবর্তনের ফাংশন
+        async function changePassword() {
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
 
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        let typingTimeout;
-        function handleTyping() {
-            typingIndicator.style.display = 'block';
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => { typingIndicator.style.display = 'none'; }, 2000);
-        }
-
-        function openNicknameModal() { document.getElementById('nicknameModal').style.display = 'flex'; }
-        
-        function saveNickname() {
-            const nick = document.getElementById('nicknameInput').value.trim();
-            if (nick) {
-                document.getElementById('partnerName').innerText = nick;
-                localStorage.setItem('lovebirds_nickname', nick);
-                closeModals();
+            if(!oldPassword || !newPassword) {
+                alert("Please fill in both password fields!");
+                return;
             }
-        }
 
-        function clearNickname() {
-            localStorage.removeItem('lovebirds_nickname');
-            document.getElementById('partnerName').innerText = "LoveBirds Partner";
-            dropdownMenu.style.display = 'none';
-        }
-
-        function openMediaGallery() {
-            const galleryContent = document.getElementById('mediaGalleryContent');
-            galleryContent.innerHTML = '';
-            if (sharedMediaList.length === 0) {
-                galleryContent.innerHTML = '<p style="color: var(--muted); font-size: 12px;">No media shared yet.</p>';
-            } else {
-                sharedMediaList.forEach(media => {
-                    if (media.type.startsWith('image/')) {
-                        galleryContent.innerHTML += `<img src="${media.url}" style="width:75px; height:75px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">`;
-                    }
+            try {
+                const res = await fetch('/api/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ oldPassword, newPassword })
                 });
+                const result = await res.json();
+                alert(result.message || "Password updated successfully!");
+                if(res.ok) {
+                    document.getElementById('oldPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                }
+            } catch (err) {
+                alert("Failed to update password!");
             }
-            document.getElementById('mediaGalleryModal').style.display = 'flex';
         }
-
-        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
-        messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     </script>
 </body>
 </html>
