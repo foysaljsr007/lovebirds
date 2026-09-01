@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoveBirds - News Feed</title>
+    <link rel="icon" type="image/png" href="Favicon.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --pink: #ff4f91;
+            --purple: #9b5cff;
+            --bg: #090711;
+            --white: #fff;
+            --muted: rgba(255,255,255,.58);
+            --glass: rgba(255,255,255,.075);
+            --border: rgba(255,255,255,.13);
+        }
+        body {
+            min-height: 100vh;
+            font-family: "DM Sans", sans-serif;
+            color: white;
+            background: radial-gradient(circle at 10% 20%, rgba(255,70,140,.22), transparent 30%),
+                        radial-gradient(circle at 90% 80%, rgba(135,75,255,.22), transparent 32%),
+                        linear-gradient(135deg, #07060c, #12091b 50%, #08070e);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+        }
+        .feed-container {
+            width: 100%;
+            max-width: 600px;
+            background: linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.035));
+            border: 1px solid var(--border);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            box-shadow: 0 35px 100px rgba(0,0,0,.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .feed-header {
+            padding: 14px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255,255,255,.04);
+            backdrop-filter: blur(20px);
+        }
+        .feed-logo {
+            font-family: "Playfair Display", serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .feed-logo span { color: var(--pink); }
+        .nav-icons-group { display: flex; gap: 10px; align-items: center; }
+        .nav-icon-btn {
+            background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255,255,255,0.18);
+            color: white; width: 38px; height: 38px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; text-decoration: none; font-size: 15px;
+            transition: 0.3s;
+        }
+        .nav-icon-btn:hover { background: linear-gradient(135deg, #ff4f91, #9b55f5); transform: translateY(-2px); }
+
+        .create-post-box { padding: 20px; border-bottom: 1px solid var(--border); }
+        .create-post-box textarea {
+            width: 100%; height: 80px; padding: 14px;
+            border-radius: 14px; border: 1px solid var(--border);
+            background: rgba(255,255,255,.05); color: white;
+            outline: none; resize: none; font-family: inherit; font-size: 14px;
+        }
+        .create-post-box textarea:focus { border-color: rgba(255,88,150,.75); background: rgba(255,255,255,.08); }
+        .post-options-row {
+            display: flex; justify-content: space-between; align-items: center; margin-top: 12px;
+        }
+        .privacy-select {
+            padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border);
+            background: rgba(255,255,255,.08); color: white; font-size: 12px; outline: none; cursor: pointer;
+        }
+        .privacy-select option { background: #12091b; color: white; }
+        .post-btn {
+            padding: 10px 24px; border: 0; border-radius: 12px; color: white;
+            background: linear-gradient(135deg, #ff4f91, #9b55f5); font-weight: 700;
+            cursor: pointer; font-size: 13px; box-shadow: 0 8px 20px rgba(255,70,145,.2); transition: .25s;
+        }
+        .post-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255,70,145,.35); }
+
+        .feed-stream {
+            padding: 20px; display: flex; flex-direction: column; gap: 15px;
+            max-height: 65vh; overflow-y: auto;
+        }
+        .post-card {
+            background: rgba(255,255,255,.04); border: 1px solid var(--border);
+            border-radius: 16px; padding: 16px; backdrop-filter: blur(10px);
+        }
+        .post-header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .post-author { font-weight: 700; font-size: 14px; color: var(--white); }
+        .post-privacy-badge {
+            font-size: 11px; color: var(--muted); background: rgba(255,255,255,.08);
+            padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border);
+        }
+        .post-text { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.6; word-wrap: break-word; }
+        .post-footer {
+            display: flex; gap: 20px; border-top: 1px solid var(--border);
+            padding-top: 10px; font-size: 12px; color: var(--muted);
+        }
+        .post-footer span { cursor: pointer; transition: .2s; display: flex; align-items: center; gap: 5px; }
+        .post-footer span:hover { color: var(--pink); }
+    </style>
+</head>
+<body>
+
+    <div class="feed-container">
+        <div class="feed-header">
+            <div class="feed-logo">Love<span>Birds</span></div>
+            <div class="nav-icons-group">
+                <a href="feed.html" class="nav-icon-btn" title="News Feed">🏠</a>
+                <a href="chat.html" class="nav-icon-btn" title="Messenger">💬</a>
+                <a href="admin.html" class="nav-icon-btn" title="Admin Control" style="color: #ff6b6b;">🛡️</a>
+            </div>
+        </div>
+
+        <div class="create-post-box">
+            <textarea id="postText" placeholder="What's on your mind? Share securely..."></textarea>
+            <div class="post-options-row">
+                <select id="postPrivacy" class="privacy-select">
+                    <option value="🌍 Public">🌍 Public</option>
+                    <option value="👥 Friends Only">👥 Friends Only</option>
+                    <option value="🔒 Only Me">🔒 Only Me</option>
+                </select>
+                <button class="post-btn" onclick="createPost()">Post ♥</button>
+            </div>
+        </div>
+
+        <div class="feed-stream" id="feedStream">
+            <!-- Dynamic posts will load here -->
+        </div>
+    </div>
+
+    <!-- Socket.io client script -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        async function loadPosts() {
+            try {
+                const res = await fetch('/api/posts');
+                const posts = await res.json();
+                renderPosts(posts);
+            } catch (err) {
+                console.error("Error loading posts", err);
+            }
+        }
+
+        function renderPosts(posts) {
+            const feedStream = document.getElementById('feedStream');
+            feedStream.innerHTML = '';
+            
+            if(posts.length === 0) {
+                feedStream.innerHTML = '<div style="text-align:center; color:rgba(255,255,255,.5); font-size:13px;">No posts found. Be the first to share something!</div>';
+                return;
+            }
+
+            posts.forEach(post => {
+                const postCard = document.createElement('div');
+                postCard.classList.add('post-card');
+                postCard.id = post.postId;
+
+                postCard.innerHTML = `
+                    <div class="post-header-info">
+                        <div class="post-author">${post.username}</div>
+                        <div class="post-privacy-badge">${post.privacy}</div>
+                    </div>
+                    <div class="post-text">${post.text}</div>
+                    <div class="post-footer">
+                        <span onclick="likePost(this)">👍 Like (${post.likes || 0})</span>
+                        <span onclick="reportPost('${post.postId}')">🚨 Report</span>
+                        <span onclick="deletePost('${post.postId}')">🗑️ Delete</span>
+                    </div>
+                `;
+                feedStream.appendChild(postCard);
+            });
+        }
+
+        function createPost() {
+            const text = document.getElementById('postText').value.trim();
+            const privacy = document.getElementById('postPrivacy').value;
+            const currentUser = localStorage.getItem('lovebirds_user') || 'MD. Foysal Ahmmed';
+
+            if (!text) {
+                alert('Please write something to post!');
+                return;
+            }
+
+            const newPost = {
+                postId: 'post_' + Date.now(),
+                username: currentUser,
+                text: text,
+                privacy: privacy,
+                likes: 0,
+                createdAt: new Date().toISOString()
+            };
+
+            socket.emit('new_post', newPost);
+            document.getElementById('postText').value = '';
+        }
+
+        function reportPost(postId) {
+            const reason = prompt("Enter report reason (e.g., Spam, Inappropriate):");
+            if (reason) {
+                socket.emit('manage_post', { action: 'report', postId, reason });
+                alert("Post reported successfully to admin monitoring panel.");
+            }
+        }
+
+        function deletePost(postId) {
+            if (confirm("Delete this post? A backup copy will be securely saved for admin audit and compliance review.")) {
+                socket.emit('manage_post', { action: 'delete', postId });
+            }
+        }
+
+        function likePost(element) {
+            let currentText = element.innerText;
+            let count = parseInt(currentText.match(/\d+/) || 0) + 1;
+            element.innerText = `👍 Liked (${count})`;
+            element.style.color = '#ff4f91';
+        }
+
+        // Real-time listeners
+        socket.on('new_post', (post) => {
+            loadPosts();
+        });
+
+        socket.on('refresh_feed', () => {
+            loadPosts();
+        });
+
+        // Initial load
+        loadPosts();
+    </script>
+</body>
+</html>

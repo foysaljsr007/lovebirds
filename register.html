@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoveBirds - Register</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            padding: 35px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .logo-area {
+            font-size: 28px;
+            font-weight: bold;
+            color: #764ba2;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 13px;
+            color: #65676b;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .input-group {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            background: #f7f9fc;
+            border-radius: 12px;
+            outline: none;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .input-group input:focus {
+            border-color: #764ba2;
+            background: #fff;
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+            transition: 0.2s;
+        }
+        .auth-btn:hover {
+            opacity: 0.9;
+        }
+        .auth-footer {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #65676b;
+            text-align: center;
+        }
+        .auth-footer a {
+            color: #764ba2;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="logo-area">LoveBirds 💚</div>
+        <div class="subtitle">Create your secure, independent account</div>
+        
+        <div class="input-group">
+            <input type="text" id="regUsername" placeholder="Choose a username">
+        </div>
+        <div class="input-group">
+            <input type="password" id="regPassword" placeholder="Choose a password">
+        </div>
+        
+        <button class="auth-btn" onclick="registerUser()">Register Now</button>
+        
+        <div class="auth-footer">
+            Already have an account? <a href="login.html">Login here</a>
+        </div>
+    </div>
+
+    <script>
+        function registerUser() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+
+            if (!username || !password) {
+                alert('Please fill in all required fields!');
+                return;
+            }
+
+            localStorage.setItem('lovebirds_user', username);
+            alert('Registration successful! Redirecting to feed...');
+            window.location.href = 'feed.html';
+        }
+    </script>
+
+</body>
+</html>
