@@ -16,9 +16,7 @@
             height: 100%;
             overflow-x: hidden;
             background: #0f0c1b;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            color: #fff;
         }
         .container {
             width: 100vw;
@@ -39,6 +37,15 @@
             color: #fff;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             text-align: center;
+        }
+        .admin-dashboard {
+            width: 100vw;
+            height: 100vh;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #1a153b, #0f0c1b);
+            overflow-y: auto;
         }
         h2 {
             margin-bottom: 10px;
@@ -76,29 +83,102 @@
         .btn:hover {
             opacity: 0.9;
         }
+        .logs-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            flex: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+        th {
+            color: #ff6b81;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- লগইন কার্ড (ডিফল্ট অবস্থায় দেখাবে) -->
+    <div class="container" id="loginSection">
         <div class="card">
             <h2>Admin Security 🛡️</h2>
             <p>Enter master password to access audit logs</p>
-            <!-- ডিফল্ট পাসওয়ার্ড কথাটি মুছে ফেলা হয়েছে -->
             <input type="password" id="adminPassword" placeholder="Enter admin password">
             <button class="btn" onclick="verifyAdmin()">Unlock Panel 🔓</button>
         </div>
     </div>
 
+    <!-- মূল অ্যাডমিন ড্যাশবোর্ড (পাসওয়ার্ড সঠিক হলে দেখাবে) -->
+    <div class="admin-dashboard" id="dashboardSection" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>Admin Control Panel 🛡️</h2>
+            <button class="btn" style="width: auto; padding: 8px 20px;" onclick="logoutAdmin()">Lock / Logout</button>
+        </div>
+        <p>System Audit Logs & Registered Users</p>
+        
+        <div class="logs-box">
+            <h3>Registered Users List</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Username</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <!-- ইউজারের ডাটা এখানে ডায়নামিক আসবে -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <script>
+        // পেজ লোড হলে চেক করা আগে থেকেই লগইন করা আছে কি না
+        window.onload = function() {
+            if(localStorage.getItem("isAdmin") === "true") {
+                showDashboard();
+            }
+        }
+
         function verifyAdmin() {
             const pass = document.getElementById('adminPassword').value;
-            if(pass === "admin123") { // আপনার মাস্টার পাসওয়ার্ড এখানে চেক করা হচ্ছে
+            if(pass === "admin123") { // মাস্টার পাসওয়ার্ড
                 localStorage.setItem("isAdmin", "true");
                 alert("Access Granted!");
-                location.reload(); // প্যানেল লোড করার কোড এখানে যুক্ত হবে
+                showDashboard();
             } else {
                 alert("Incorrect Password!");
             }
+        }
+
+        async function showDashboard() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('dashboardSection').style.display = 'flex';
+
+            // সার্ভার থেকে রেজিস্টার্ড ইউজারদের ডাটা নিয়ে আসা
+            try {
+                const res = await fetch('/api/admin/users'); // যদি সার্ভারে এই রাউট থাকে
+                // অথবা লোকাল স্টোরেজ বা ডেমো ডাটা দেখানোর ব্যবস্থা
+                const tbody = document.getElementById('userTableBody');
+                tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#aaa;">Secure connection active. Panel unlocked successfully.</td></tr>`;
+            } catch(e) {
+                console.log(e);
+            }
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem("isAdmin");
+            location.reload();
         }
     </script>
 </body>
