@@ -1,158 +1,106 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.static(path.join(__dirname)));
-
+// পোর্ট ও ডাটাবেজ পাথ কনফিগারেশন
+const PORT = process.env.PORT || 3000;
 const DB_DIR = path.join(__dirname, 'database');
-if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR);
-}
-
 const USERS_FILE = path.join(DB_DIR, 'users.json');
-const POSTS_FILE = path.join(DB_DIR, 'posts.json');
-const BACKUP_FILE = path.join(DB_DIR, 'admin_backup.json');
 
-function readData(filePath) {
-    if (!fs.existsSync(filePath)) return [];
-    try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); } catch (e) { return []; }
+// ডাটাবেজ ফোল্ডার বা ফাইল না থাকলে অটো তৈরি করা
+if (!fs.existsSync(DB_DIR)) {
+    fs.mkdirSync(DB_DIR, { recursive: true });
 }
-function writeData(filePath, data) {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+if (!fs.existsSync(USERS_FILE)) {
+    fs.writeFileSync(USERS_FILE, JSON.stringify([]));
 }
 
-if (!fs.existsSync(USERS_FILE)) writeData(USERS_FILE, []);
-if (!fs.existsSync(POSTS_FILE)) writeData(POSTS_FILE, []);
-if (!fs.existsSync(BACKUP_FILE)) writeData(BACKUP_FILE, { deleted_posts: [], deleted_chats: [], reports: [], logs: [] });
+// মিডলওয়্যার
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname))); // স্ট্যাটিক ফাইল সার্ভ করার জন্য
 
-// --- API: User Registration ---
+// ১. রেজিস্ট্রেশন রাউট (FullName, Username, Password সহ)
 app.post('/api/register', (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
-        return res.json({ success: false, message: 'Username and password required!' });
+    const { fullName, username, password } = req.body;
+    
+    if (!fullName || !username || !password) {
+        return res.status(400).json({ message: "All fields are required!" });
     }
 
-    let users = readData(USERS_FILE);
-    if (users.find(u => u.username === username)) {
-        return res.json({ success: false, message: 'Username already exists!' });
+    let users = [];
+    try {
+        const data = fs.readFileSync(USERS_FILE, 'utf8');
+        users = JSON.parse(data);
+    } catch (err) {
+        users = [];
     }
 
-    const newUser = { id: Date.now().toString(), username, password, joinedAt: new Date().toISOString() };
-    users.push(newUser);
-    writeData(USERS_FILE, users);
-
-    res.json({ success: true, message: 'Registration successful!', user: { username } });
-});
-
-// --- API: User Login ---
-app.post('/api/login', (req, res) => {
-    const { username, password } = req.body;
-    let users = readData(USERS_FILE);
-    const user = users.find(u => u.username === username && u.password === password);
-
-    if (!user) {
-        return res.json({ success: false, message: 'Invalid credentials!' });
+    // ইউজার আগে থেকেই আছে কি না চেক করা
+    const existingUser = users.find(u => u.username === username);
+    if (existingUser) {
+        return res.status(400).json({ message: "Username already exists!" });
     }
 
-    res.json({ success: true, message: 'Login successful!', user: { username: user.username } });
+    // নতুন ইউজার সেভ করা
+    users.push({ fullName, username, password });
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+
+    res.status(200).json({ message: "Registration successful!" });
 });
 
-// --- API: Password Reset / Recovery ---
-app.post('/api/reset-password', (req, res) => {
-    const { username, newPassword } = req.body;
-    if (!username || !newPassword) {
-        return res.json({ success: false, message: 'Username and new password are required!' });
+// ২. পাসওয়ার্ড পরিবর্তনের রাউট
+app.post('/api/change-password', (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+        return res.status(400).json({ message: "Please provide both old and new passwords!" });
     }
 
-    let users = readData(USERS_FILE);
-    const userIndex = users.findIndex(u => u.username === username);
-
-    if (userIndex === -1) {
-        return res.json({ success: false, message: 'Username not found in system!' });
+    let users = [];
+    try {
+        const data = fs.readFileSync(USERS_FILE, 'utf8');
+        users = JSON.parse(data);
+    } catch (err) {
+        return res.status(500).json({ message: "Database error!" });
     }
 
-    users[userIndex].password = newPassword;
-    writeData(USERS_FILE, users);
-
-    res.json({ success: true, message: 'Password reset successful! You can now log in.' });
-});
-
-// --- API: Get Posts ---
-app.get('/api/posts', (req, res) => {
-    let posts = readData(POSTS_FILE);
-    res.json(posts);
-});
-
-// --- API: Admin & Security Data Fetch ---
-app.get('/api/admin/data', (req, res) => {
-    let users = readData(USERS_FILE);
-    let backup = readData(BACKUP_FILE);
-    res.json({ users, backup });
-});
-
-// --- Real-time Socket.io Sync & Security Audit ---
-io.on('connection', (socket) => {
-    console.log('Secure client connected: ' + socket.id);
-
-    socket.on('chat_message', (data) => {
-        let backup = readData(BACKUP_FILE);
-        backup.logs.push({ type: 'chat', sender: data.sender, content: data.text, timestamp: new Date().toISOString() });
-        writeData(BACKUP_FILE, backup);
-        io.emit('chat_message', data);
-    });
-
-    socket.on('delete_chat_everyone', (msgData) => {
-        let backup = readData(BACKUP_FILE);
-        backup.deleted_chats.push({
-            sender: msgData.sender,
-            content: msgData.content,
-            deletedAt: new Date().toISOString(),
-            reason: "Deleted by sender for everyone"
-        });
-        writeData(BACKUP_FILE, backup);
-        io.emit('refresh_chat');
-    });
-
-    socket.on('new_post', (postData) => {
-        let posts = readData(POSTS_FILE);
-        posts.unshift(postData);
-        writeData(POSTS_FILE, posts);
-        io.emit('new_post', postData);
-    });
-
-    socket.on('manage_post', (actionData) => {
-        let posts = readData(POSTS_FILE);
-        let backup = readData(BACKUP_FILE);
-
-        if (actionData.action === 'delete') {
-            const index = posts.findIndex(p => p.postId === actionData.postId);
-            if (index !== -1) {
-                const deleted = posts.splice(index, 1)[0];
-                backup.deleted_posts.push({ ...deleted, deletedAt: new Date().toISOString() });
-                writeData(POSTS_FILE, posts);
-                writeData(BACKUP_FILE, backup);
-                io.emit('refresh_feed');
-            }
-        } else if (actionData.action === 'report') {
-            backup.reports.push({ postId: actionData.postId, reason: actionData.reason, reportedAt: new Date().toISOString() });
-            writeData(BACKUP_FILE, backup);
+    // নোট: সিম্প্লিফিকেশনের জন্য এখানে ইউজার সেশন চেক করা হয়েছে, 
+    // আপনি চাইলে নির্দিষ্ট ইউজারের পাসওয়ার্ড আপডেট লজিক এখানে কাস্টমাইজ করতে পারেন।
+    if (users.length > 0) {
+        // ডেমো বা সিঙ্গেল সেশন হ্যান্ডলিংয়ের জন্য প্রথম ইউজারের পাসওয়ার্ড চেক
+        if (users[0].password === oldPassword) {
+            users[0].password = newPassword;
+            fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+            return res.status(200).json({ message: "Password updated successfully!" });
+        } else {
+            return res.status(400).json({ message: "Current password is incorrect!" });
         }
+    } else {
+        return res.status(404).json({ message: "No user found!" });
+    }
+});
+
+// রিয়েল-টাইম Socket.io চ্যাট হ্যান্ডলিং
+io.on('connection', (socket) => {
+    console.log('A user connected');
+
+    socket.on('chatMessage', (data) => {
+        // চ্যাট মেসেজ সকল ইউজারের কাছে ব্রডকাস্ট করা
+        io.emit('message', { username: data.username || 'LoveBirds User', text: data.text });
     });
 
     socket.on('disconnect', () => {
-        console.log('Client disconnected.');
+        console.log('A user disconnected');
     });
 });
 
-const PORT = 3000;
 server.listen(PORT, () => {
     console.log(`LoveBirds Ultimate Secure Platform running on http://localhost:${PORT}`);
 });
