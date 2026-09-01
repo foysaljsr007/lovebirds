@@ -4,193 +4,159 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LoveBirds - Secure Login & Registration</title>
-    <link rel="icon" type="image/png" href="Favicon.png">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --pink: #ff4f91;
-            --purple: #9b5cff;
-            --bg: #090711;
-            --white: #fff;
-            --muted: rgba(255,255,255,.58);
-            --glass: rgba(255,255,255,.075);
-            --border: rgba(255,255,255,.13);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        body {
-            height: 100vh;
-            font-family: "DM Sans", sans-serif;
-            color: white;
-            background: radial-gradient(circle at 10% 20%, rgba(255,70,140,.22), transparent 30%),
-                        radial-gradient(circle at 90% 80%, rgba(135,75,255,.22), transparent 32%),
-                        linear-gradient(135deg, #07060c, #12091b 50%, #08070e);
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            background: #0f0c1b;
             display: flex;
             justify-content: center;
             align-items: center;
         }
         .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a153b, #0f0c1b);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 16px;
             width: 100%;
-            max-width: 420px;
-            background: linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.035));
-            border: 1px solid var(--border);
-            backdrop-filter: blur(30px);
-            border-radius: 25px;
-            box-shadow: 0 35px 100px rgba(0,0,0,.5);
-            padding: 35px;
+            max-width: 400px;
+            color: #fff;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             text-align: center;
         }
-        .logo {
-            font-family: "Playfair Display", serif;
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--white);
+        h2 {
             margin-bottom: 5px;
+            color: #ff4757;
         }
-        .logo span { color: var(--pink); }
-        .tagline { font-size: 12px; color: var(--muted); margin-bottom: 25px; }
-
-        .form-box { display: none; flex-direction: column; gap: 14px; }
-        .form-box.active { display: flex; }
-
-        input {
-            width: 100%; height: 46px; padding: 0 16px; border-radius: 14px;
-            border: 1px solid var(--border); background: rgba(255,255,255,.05);
-            color: white; outline: none; font-size: 13px; transition: 0.2s;
+        .subtitle {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 20px;
         }
-        input:focus { border-color: rgba(255,88,150,.75); background: rgba(255,255,255,.08); }
-
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #ddd;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+            outline: none;
+        }
+        .input-group input:focus {
+            border-color: #ff4757;
+        }
         .btn {
-            width: 100%; height: 46px; border: 0; border-radius: 14px;
-            background: linear-gradient(135deg, #ff4f91, #9b55f5); color: white;
-            font-weight: bold; cursor: pointer; font-size: 14px;
-            box-shadow: 0 8px 20px rgba(255,70,145,.3); transition: 0.25s;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
         }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255,70,145,.45); }
-
-        .switch-text { font-size: 12px; color: var(--muted); margin-top: 15px; cursor: pointer; }
-        .switch-text span { color: var(--pink); font-weight: bold; }
-        .switch-text span:hover { text-decoration: underline; }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        p {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        p a {
+            color: #ff6b81;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <div class="logo">Love<span>Birds</span></div>
-        <div class="tagline">Secure, Independent & Encrypted Social Space</div>
+        <div class="card">
+            <h2>LoveBirds</h2>
+            <p class="subtitle">Secure, Independent & Encrypted Social Space</p>
+            
+            <form id="registerForm">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="fullName" placeholder="Enter your full name" required>
+                </div>
 
-        <!-- Login Form -->
-        <div class="form-box active" id="loginForm">
-            <input type="text" id="loginUser" placeholder="Username">
-            <input type="password" id="loginPass" placeholder="Password">
-            <button class="btn" onclick="handleLogin()">Login ♥</button>
-            <div class="switch-text" onclick="switchForm('registerForm')">Don't have an account? <span>Register</span></div>
-            <div class="switch-text" style="margin-top: 5px;" onclick="switchForm('resetForm')">Forgot Password? <span>Reset</span></div>
-        </div>
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="regUsername" placeholder="Choose a username" required>
+                </div>
 
-        <!-- Registration Form -->
-        <div class="form-box" id="registerForm">
-            <input type="text" id="regUser" placeholder="Choose Username">
-            <input type="password" id="regPass" placeholder="Choose Password">
-            <button class="btn" onclick="handleRegister()">Create Account ♥</button>
-            <div class="switch-text" onclick="switchForm('loginForm')">Already have an account? <span>Login</span></div>
-        </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="regPassword" placeholder="Enter password" required>
+                </div>
 
-        <!-- Password Reset Form -->
-        <div class="form-box" id="resetForm">
-            <input type="text" id="resetUser" placeholder="Enter your Username">
-            <input type="password" id="resetNewPass" placeholder="Enter New Password">
-            <button class="btn" onclick="handleResetPassword()">Reset Password ♥</button>
-            <div class="switch-text" onclick="switchForm('loginForm')">Remember password? <span>Login</span></div>
+                <div class="input-group">
+                    <label>Retype Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Retype your password" required>
+                </div>
+
+                <button type="submit" class="btn">Create Account 🪶</button>
+                <p>Already have an account? <a href="login.html">Login</a></p>
+            </form>
         </div>
     </div>
 
     <script>
-        function switchForm(formId) {
-            document.querySelectorAll('.form-box').forEach(f => f.classList.remove('active'));
-            document.getElementById(formId).classList.add('active');
-        }
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('fullName').value;
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
 
-        async function handleRegister() {
-            const username = document.getElementById('regUser').value.trim();
-            const password = document.getElementById('regPass').value.trim();
-
-            if(!username || !password) {
-                alert('Please fill in all fields!');
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
                 return;
             }
 
-            try {
-                const res = await fetch('/api/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-                if(data.success) {
-                    alert('Registration successful! Please login.');
-                    localStorage.setItem('lovebirds_user', username);
-                    switchForm('loginForm');
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('Server connection error.');
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullName, username, password })
+            });
+            const data = await res.json();
+            if(res.ok) {
+                alert("Registration Successful!");
+                window.location.href = 'login.html';
+            } else {
+                alert(data.message || "Registration failed!");
             }
-        }
-
-        async function handleLogin() {
-            const username = document.getElementById('loginUser').value.trim();
-            const password = document.getElementById('loginPass').value.trim();
-
-            if(!username || !password) {
-                alert('Please fill in all fields!');
-                return;
-            }
-
-            try {
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-                if(data.success) {
-                    localStorage.setItem('lovebirds_user', data.user.username);
-                    window.location.href = 'feed.html';
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('Server connection error.');
-            }
-        }
-
-        async function handleResetPassword() {
-            const username = document.getElementById('resetUser').value.trim();
-            const newPassword = document.getElementById('resetNewPass').value.trim();
-
-            if(!username || !newPassword) {
-                alert('Please enter username and new password!');
-                return;
-            }
-
-            try {
-                const res = await fetch('/api/reset-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, newPassword })
-                });
-                const data = await res.json();
-                if(data.success) {
-                    alert(data.message);
-                    switchForm('loginForm');
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('Server connection error.');
-            }
-        }
+        });
     </script>
 </body>
 </html>
