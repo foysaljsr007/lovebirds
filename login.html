@@ -3,129 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoveBirds - Login</title>
+    <title>LoveBirds - Secure Chat</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .auth-container {
-            width: 100%;
-            max-width: 400px;
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            padding: 35px 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .logo-area {
-            font-size: 28px;
-            font-weight: bold;
-            color: #764ba2;
-            margin-bottom: 5px;
-        }
-        .subtitle {
-            font-size: 13px;
-            color: #65676b;
-            margin-bottom: 25px;
-            text-align: center;
-        }
-        .input-group {
-            width: 100%;
-            margin-bottom: 15px;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            background: #f7f9fc;
-            border-radius: 12px;
-            outline: none;
-            font-size: 14px;
-            transition: 0.2s;
-        }
-        .input-group input:focus {
-            border-color: #764ba2;
-            background: #fff;
-        }
-        .auth-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 15px;
-            cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
-            transition: 0.2s;
-        }
-        .auth-btn:hover {
-            opacity: 0.9;
-        }
-        .auth-footer {
-            margin-top: 20px;
-            font-size: 13px;
-            color: #65676b;
-            text-align: center;
-        }
-        .auth-footer a {
-            color: #764ba2;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .auth-footer a:hover {
-            text-decoration: underline;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #0f0c1b; color: #fff; width: 100vw; height: 100vh; overflow: hidden; }
+        .container { width: 100vw; height: 100vh; background: linear-gradient(135deg, #1a153b, #0f0c1b); display: flex; flex-direction: column; padding: 20px; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(255,255,255,0.05); backdrop-filter: blur(16px); border-radius: 12px; margin-bottom: 20px; }
+        .navbar h2 { color: #ff4757; }
+        .nav-links a { color: #fff; text-decoration: none; margin-left: 15px; font-weight: 600; font-size: 14px; }
+        .nav-links a:hover { color: #ff4757; }
+        .chat-box { flex: 1; background: rgba(255,255,255,0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; padding: 20px; }
+        .messages { flex: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 10px; }
+        .msg { background: rgba(255,255,255,0.07); padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; max-width: 70%; word-break: break-word; }
+        .msg span { font-size: 11px; color: #ff6b81; display: block; margin-bottom: 3px; font-weight: bold; }
+        .chat-input { display: flex; gap: 10px; }
+        .chat-input input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); color: #fff; outline: none; }
+        .btn-send { padding: 0 25px; border: none; border-radius: 8px; background: linear-gradient(135deg, #ff4757, #ff6b81); color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
-    <div class="auth-container">
-        <div class="logo-area">LoveBirds 💚</div>
-        <div class="subtitle">Log in to your social network</div>
-        
-        <div class="input-group">
-            <input type="text" id="loginUsername" placeholder="Enter your username">
+    <div class="container">
+        <div class="navbar">
+            <h2>LoveBirds</h2>
+            <div class="nav-links">
+                <a href="feed.html">Feed</a>
+                <a href="find-friends.html">Find Friends</a>
+                <a href="chat.html" style="color: #ff4757;">Chat</a>
+                <a href="index.html">Logout</a>
+            </div>
         </div>
-        <div class="input-group">
-            <input type="password" id="loginPassword" placeholder="Enter your password">
-        </div>
-        
-        <button class="auth-btn" onclick="loginUser()">Log In</button>
-        
-        <div class="auth-footer">
-            Don't have an account? <a href="register.html">Register</a>
+        <div class="chat-box">
+            <div class="messages" id="messages"></div>
+            <div class="chat-input">
+                <input type="text" id="msgInput" placeholder="Type a message...">
+                <button class="btn-send" onclick="sendMessage()">Send</button>
+            </div>
         </div>
     </div>
-
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        function loginUser() {
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
+        const socket = io();
+        const username = prompt("Enter your chat username:") || "User";
 
-            if (!username || !password) {
-                alert('Please enter both username and password!');
-                return;
-            }
-
-            localStorage.setItem('lovebirds_user', username);
-            window.location.href = 'feed.html';
+        function sendMessage() {
+            const text = document.getElementById('msgInput').value;
+            if(!text) return;
+            socket.emit('chatMessage', { username, text });
+            document.getElementById('msgInput').value = '';
         }
-    </script>
 
+        socket.on('message', (data) => {
+            const box = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = 'msg';
+            div.innerHTML = `<span>@${data.username}</span>${data.text}`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        });
+    </script>
 </body>
 </html>
