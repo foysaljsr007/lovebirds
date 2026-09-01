@@ -4,218 +4,102 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LoveBirds - Admin Control Panel</title>
-    <link rel="icon" type="image/png" href="Favicon.png">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --pink: #ff4f91;
-            --purple: #9b5cff;
-            --bg: #090711;
-            --white: #fff;
-            --muted: rgba(255,255,255,.58);
-            --glass: rgba(255,255,255,.075);
-            --border: rgba(255,255,255,.13);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        body {
-            height: 100vh;
-            font-family: "DM Sans", sans-serif;
-            color: white;
-            background: radial-gradient(circle at 10% 20%, rgba(255,70,140,.22), transparent 30%),
-                        radial-gradient(circle at 90% 80%, rgba(135,75,255,.22), transparent 32%),
-                        linear-gradient(135deg, #07060c, #12091b 50%, #08070e);
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            background: #0f0c1b;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-
-        .auth-overlay {
-            position: fixed; inset: 0; background: rgba(5, 4, 10, 0.85);
-            backdrop-filter: blur(25px); display: flex; justify-content: center; align-items: center; z-index: 1000;
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a153b, #0f0c1b);
         }
-        .auth-box {
-            background: linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.035));
-            border: 1px solid var(--border); padding: 35px; border-radius: 25px;
-            width: 90%; max-width: 380px; text-align: center; box-shadow: 0 35px 100px rgba(0,0,0,.6);
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            color: #fff;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            text-align: center;
         }
-        .auth-box h3 { font-family: "Playfair Display", serif; font-size: 22px; color: var(--pink); margin-bottom: 8px; }
-        .auth-box p { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
-        .auth-box input {
-            width: 100%; height: 46px; padding: 0 16px; border-radius: 12px;
-            border: 1px solid var(--border); background: rgba(255,255,255,.05);
-            color: white; outline: none; font-size: 13px; margin-bottom: 15px; text-align: center;
+        h2 {
+            margin-bottom: 10px;
+            color: #ff4757;
         }
-        .auth-box button {
-            width: 100%; height: 46px; border: 0; border-radius: 12px;
-            background: linear-gradient(135deg, #ff4f91, #9b55f5); color: white;
-            font-weight: bold; cursor: pointer; font-size: 13px; box-shadow: 0 8px 20px rgba(255,70,145,.3);
+        p {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 20px;
         }
-
-        .admin-container {
-            width: 100%; max-width: 700px; height: 90vh;
-            background: linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.035));
-            border: 1px solid var(--border); backdrop-filter: blur(30px);
-            border-radius: 25px; box-shadow: 0 35px 100px rgba(0,0,0,.5);
-            display: flex; flex-direction: column; overflow: hidden; display: none;
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+            outline: none;
+            margin-bottom: 15px;
         }
-        .admin-header {
-            padding: 16px 22px; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border); background: rgba(255,255,255,.04); backdrop-filter: blur(20px);
+        input:focus {
+            border-color: #ff4757;
         }
-        .admin-header h2 { font-family: "Playfair Display", serif; font-size: 18px; color: var(--pink); }
-        .nav-icons-group { display: flex; gap: 10px; align-items: center; }
-        .nav-icon-btn {
-            background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
-            border: 1px solid rgba(255,255,255,0.18); color: white; width: 36px; height: 36px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; font-size: 14px;
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
         }
-
-        .admin-body {
-            flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background: rgba(0,0,0,0.2);
-        }
-        .section-box {
-            background: rgba(255,255,255,.04); border: 1px solid var(--border); padding: 15px; border-radius: 14px;
-        }
-        .section-box h3 {
-            color: var(--pink); margin-bottom: 10px; font-size: 13px; font-family: "Playfair Display", serif;
-            border-bottom: 1px solid var(--border); padding-bottom: 5px;
-        }
-        .data-item {
-            padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.05); font-size: 12px; color: var(--muted);
-            display: flex; justify-content: space-between; align-items: center;
+        .btn:hover {
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
-
-    <div class="auth-overlay" id="adminAuthOverlay">
-        <div class="auth-box">
-            <h3>Admin Security 🛡️</h3>
+    <div class="container">
+        <div class="card">
+            <h2>Admin Security 🛡️</h2>
             <p>Enter master password to access audit logs</p>
-            <input type="password" id="adminPasswordInput" placeholder="Enter password (default: admin123)">
-            <button onclick="verifyAdminPassword()">Unlock Panel ♥</button>
-        </div>
-    </div>
-
-    <div class="admin-container" id="adminMainContainer">
-        <div class="admin-header">
-            <h2>🛡️ Admin Audit & Compliance Panel</h2>
-            <div class="nav-icons-group">
-                <a href="feed.html" class="nav-icon-btn" title="News Feed">🏠</a>
-                <a href="chat.html" class="nav-icon-btn" title="Messenger">💬</a>
-                <button class="nav-icon-btn" onclick="lockAdmin()" title="Lock Panel" style="color: #ff6b6b;">🔒</button>
-            </div>
-        </div>
-
-        <div class="admin-body">
-            <div class="section-box">
-                <h3>👥 Registered Users Management</h3>
-                <div id="usersListContainer">
-                    <div class="data-item"><span>Loading registered users...</span></div>
-                </div>
-            </div>
-
-            <div class="section-box">
-                <h3>🚨 User Reports & Violations</h3>
-                <div id="reportsListContainer">
-                    <div class="data-item"><span>No active reports.</span></div>
-                </div>
-            </div>
-
-            <div class="section-box">
-                <h3>🗑️ Deleted Chat Messages & Media Archive (Compliance Audit)</h3>
-                <div id="deletedChatsContainer">
-                    <div class="data-item"><span>No deleted chats in archive.</span></div>
-                </div>
-            </div>
-
-            <div class="section-box">
-                <h3>📂 Deleted Feed Posts Backup</h3>
-                <div id="backupListContainer">
-                    <div class="data-item"><span>Archive is empty.</span></div>
-                </div>
-            </div>
+            <!-- ডিফল্ট পাসওয়ার্ড কথাটি মুছে ফেলা হয়েছে -->
+            <input type="password" id="adminPassword" placeholder="Enter admin password">
+            <button class="btn" onclick="verifyAdmin()">Unlock Panel 🔓</button>
         </div>
     </div>
 
     <script>
-        const MASTER_PASSWORD = "admin123";
-
-        function verifyAdminPassword() {
-            const pass = document.getElementById('adminPasswordInput').value.trim();
-            if(pass === MASTER_PASSWORD) {
-                document.getElementById('adminAuthOverlay').style.display = 'none';
-                document.getElementById('adminMainContainer').style.display = 'flex';
-                fetchAdminData();
+        function verifyAdmin() {
+            const pass = document.getElementById('adminPassword').value;
+            if(pass === "admin123") { // আপনার মাস্টার পাসওয়ার্ড এখানে চেক করা হচ্ছে
+                localStorage.setItem("isAdmin", "true");
+                alert("Access Granted!");
+                location.reload(); // প্যানেল লোড করার কোড এখানে যুক্ত হবে
             } else {
-                alert("Incorrect password! Access denied.");
+                alert("Incorrect Password!");
             }
         }
-
-        function lockAdmin() {
-            document.getElementById('adminMainContainer').style.display = 'none';
-            document.getElementById('adminAuthOverlay').style.display = 'flex';
-            document.getElementById('adminPasswordInput').value = '';
-        }
-
-        async function fetchAdminData() {
-            try {
-                const res = await fetch('/api/admin/data');
-                const data = await res.json();
-                
-                // Render Users
-                const usersContainer = document.getElementById('usersListContainer');
-                usersContainer.innerHTML = '';
-                if(data.users.length === 0) {
-                    usersContainer.innerHTML = '<div class="data-item"><span>No users found.</span></div>';
-                } else {
-                    data.users.forEach(u => {
-                        usersContainer.innerHTML += `<div class="data-item"><span>👤 ${u.username} (Joined: ${new Date(u.joinedAt).toLocaleDateString()})</span><span style="color:#2ecc71;">Active</span></div>`;
-                    });
-                }
-
-                // Render Reports
-                const reportsContainer = document.getElementById('reportsListContainer');
-                reportsContainer.innerHTML = '';
-                if(data.backup.reports.length === 0) {
-                    reportsContainer.innerHTML = '<div class="data-item"><span>No reports found. System clean.</span></div>';
-                } else {
-                    data.backup.reports.forEach(r => {
-                        reportsContainer.innerHTML += `<div class="data-item"><span>⚠️ Post ID: ${r.postId} - Reason: ${r.reason}</span><span>${new Date(r.reportedAt).toLocaleTimeString()}</span></div>`;
-                    });
-                }
-
-                // Render Deleted Chats Archive
-                const deletedChatsContainer = document.getElementById('deletedChatsContainer');
-                deletedChatsContainer.innerHTML = '';
-                if(!data.backup.deleted_chats || data.backup.deleted_chats.length === 0) {
-                    deletedChatsContainer.innerHTML = '<div class="data-item"><span>No deleted chats or media archived.</span></div>';
-                } else {
-                    data.backup.deleted_chats.forEach(dc => {
-                        deletedChatsContainer.innerHTML += `<div class="data-item"><span>⚠️ From ${dc.sender}: [${dc.content.substring(0, 30)}...]</span><span style="color:#ff6b6b;">Archived (${new Date(dc.deletedAt).toLocaleTimeString()})</span></div>`;
-                    });
-                }
-
-                // Render Feed Post Backups
-                const backupContainer = document.getElementById('backupListContainer');
-                backupContainer.innerHTML = '';
-                if(data.backup.deleted_posts.length === 0) {
-                    backupContainer.innerHTML = '<div class="data-item"><span>No deleted feed posts.</span></div>';
-                } else {
-                    data.backup.deleted_posts.forEach(p => {
-                        backupContainer.innerHTML += `<div class="data-item"><span>🗑️ By ${p.username}: "${p.text.substring(0, 25)}..."</span><span>${new Date(p.deletedAt).toLocaleTimeString()}</span></div>`;
-                    });
-                }
-            } catch (err) {
-                console.error("Failed to load admin data", err);
-            }
-        }
-
-        setInterval(() => {
-            if(document.getElementById('adminMainContainer').style.display === 'flex') {
-                fetchAdminData();
-            }
-        }, 5000);
     </script>
 </body>
 </html>
